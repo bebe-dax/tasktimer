@@ -1,0 +1,17 @@
+interface PriorityBadgeProps {
+  priority: 'Low' | 'Middle' | 'High';
+}
+
+export default function PriorityBadge({ priority }: PriorityBadgeProps) {
+  const styles = {
+    Low: 'bg-green-100 text-green-800',
+    Middle: 'bg-yellow-100 text-yellow-800',
+    High: 'bg-red-100 text-red-800',
+  };
+
+  return (
+    <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[priority]}`}>
+      {priority}
+    </span>
+  );
+}

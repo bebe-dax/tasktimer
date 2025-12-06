@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+import "../styles/globals.css";
+
+export const metadata: Metadata = {
+  title: "Task Timer",
+  description: "Task management application",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -5,7 +13,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body></body>
+      <body className="antialiased">
+        {children}
+      </body>
     </html>
   );
 }
