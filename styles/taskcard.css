@@ -1,15 +1,36 @@
 .taskcard {
   background-color: #ffffff;
+  margin: 15px;
   padding: 16px;
   border-radius: 8px;
   border: 1px solid #000000;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: box-shadow 0.2s ease;
+  cursor: grab;
+  transition: box-shadow 0.2s ease, opacity 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .taskcard:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.taskcard:active {
+  cursor: grabbing;
+  opacity: 0.7;
+}
+
+.taskcard-left {
+  flex: 1;
+}
+
+.taskcard-time {
+  font-size: 16px;
+  font-weight: 300;
+  color: #374151;
+  margin-left: 16px;
+  white-space: nowrap;
 }
 
 .taskcard-title {
@@ -19,6 +40,7 @@
   margin-bottom: 8px;
   font-size: 20px;
   color: #000000;
+  cursor: pointer;
 }
 
 .taskcard-description {

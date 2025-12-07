@@ -5,6 +5,13 @@
   border-radius: 10;
   border: 2px solid #000000;
   box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.taskarea.drag-over {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  border-width: 3px;
 }
 
 .todoArea {
