@@ -10,11 +10,17 @@ interface Task {
   description: string;
   priority: "Low" | "Middle" | "High";
   status: "Todo" | "In Progress" | "Completed";
+  initialTime: {
+    hours: string;
+    minutes: string;
+    seconds: string;
+  };
   time?: {
     hours: string;
     minutes: string;
     seconds: string;
   };
+  isRunning?: boolean;
 }
 
 interface TaskAreaProps {
@@ -28,6 +34,7 @@ interface TaskAreaProps {
   onAddTask: (task: Task) => void;
   onUpdateTask: (updatedTask: Task) => void;
   onDeleteTask: (taskId: string) => void;
+  onToggleTimer: (taskId: string) => void;
 }
 
 export default function TaskArea({
@@ -38,22 +45,30 @@ export default function TaskArea({
   onAddTask,
   onUpdateTask,
   onDeleteTask,
+  onToggleTimer,
 }: TaskAreaProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleTaskClick = (task?: Task) => {
+    // In Progressエリアでは編集を許可しない
+    if (areaName === "In Progress") {
+      return;
+    }
+
     if (task) {
       setSelectedTask(task);
     } else {
+      const defaultTime = { hours: "00", minutes: "00", seconds: "00" };
       setSelectedTask({
         id: Date.now().toString(),
         title: "",
         description: "",
         priority: "Low",
         status: areaName as "Todo" | "In Progress" | "Completed",
-        time: { hours: "00", minutes: "00", seconds: "00" },
+        initialTime: defaultTime,
+        time: defaultTime,
       });
     }
     setIsModalOpen(true);
@@ -75,6 +90,7 @@ export default function TaskArea({
       const updatedTask: Task = {
         ...selectedTask,
         ...taskData,
+        initialTime: taskData.time, // 保存時にinitialTimeも更新
       };
 
       if (isNewTask) {
@@ -125,19 +141,28 @@ export default function TaskArea({
           id={task.id}
           title={task.title}
           priority={task.priority}
+          status={task.status}
           time={task.time}
-          onClick={() => handleTaskClick(task)}
+          isRunning={task.isRunning}
+          onClick={areaName !== "In Progress" ? () => handleTaskClick(task) : undefined}
+          onToggle={
+            task.status === "In Progress"
+              ? () => onToggleTimer(task.id)
+              : undefined
+          }
         />
       ))}
-      <h3>
-        <button
-          className="addTaskButton"
-          type="button"
-          onClick={() => handleTaskClick()}
-        >
-          + Add Task
-        </button>
-      </h3>
+      {areaName !== "In Progress" && (
+        <h3>
+          <button
+            className="addTaskButton"
+            type="button"
+            onClick={() => handleTaskClick()}
+          >
+            + Add Task
+          </button>
+        </h3>
+      )}
       <TaskDetail
         isOpen={isModalOpen}
         onClose={handleCloseModal}

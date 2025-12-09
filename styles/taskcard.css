@@ -6,10 +6,14 @@
   border: 1px solid #000000;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   cursor: grab;
-  transition: box-shadow 0.2s ease, opacity 0.2s ease;
+  transition: box-shadow 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.taskcard.in-progress {
+  background-color: #fffbeb;
 }
 
 .taskcard:hover {
@@ -25,12 +29,61 @@
   flex: 1;
 }
 
+.taskcard-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .taskcard-time {
   font-size: 16px;
   font-weight: 300;
   color: #374151;
-  margin-left: 16px;
   white-space: nowrap;
+}
+
+.taskcard-toggle-button {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.taskcard-toggle-button.running {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.taskcard-toggle-button.paused {
+  background-color: #dbeafe;
+  border-color: #3b82f6;
+  color: #2563eb;
+}
+
+.taskcard-toggle-button.running:hover {
+  background-color: #fecaca;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.taskcard-toggle-button.paused:hover {
+  background-color: #bfdbfe;
+  border-color: #2563eb;
+  color: #1e40af;
+}
+
+.taskcard-toggle-button:active {
+  transform: scale(0.95);
 }
 
 .taskcard-title {
@@ -40,7 +93,14 @@
   margin-bottom: 8px;
   font-size: 20px;
   color: #000000;
+}
+
+.taskcard-title.clickable {
   cursor: pointer;
+}
+
+.taskcard-title.non-clickable {
+  cursor: default;
 }
 
 .taskcard-description {

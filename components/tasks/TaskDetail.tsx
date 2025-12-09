@@ -39,9 +39,17 @@ export default function TaskDetail({
   const [taskPriority, setTaskPriority] = useState<"Low" | "Middle" | "High">(
     task.priority
   );
-  const [hours, setHours] = useState(task.time?.hours || "00");
   const [minutes, setMinutes] = useState(task.time?.minutes || "00");
   const [seconds, setSeconds] = useState(task.time?.seconds || "00");
+
+  // 分が変更されたときの処理
+  const handleMinutesChange = (newMinutes: string) => {
+    setMinutes(newMinutes);
+    // 60分の場合は秒を00に固定
+    if (newMinutes === "60") {
+      setSeconds("00");
+    }
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -110,29 +118,13 @@ export default function TaskDetail({
             <div className="time-inputs">
               <div className="time-input-group">
                 <select
-                  id="hours"
-                  name="hours"
-                  className="time-select"
-                  value={hours}
-                  onChange={(e) => setHours(e.target.value)}
-                >
-                  {Array.from({ length: 24 }, (_, i) => i).map((num) => (
-                    <option key={num} value={num.toString().padStart(2, "0")}>
-                      {num.toString().padStart(2, "0")}
-                    </option>
-                  ))}
-                </select>
-                <span className="time-separator">:</span>
-              </div>
-              <div className="time-input-group">
-                <select
                   id="minutes"
                   name="minutes"
                   className="time-select"
                   value={minutes}
-                  onChange={(e) => setMinutes(e.target.value)}
+                  onChange={(e) => handleMinutesChange(e.target.value)}
                 >
-                  {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map((num) => (
+                  {Array.from({ length: 13 }, (_, i) => i * 5).map((num) => (
                     <option key={num} value={num.toString().padStart(2, "0")}>
                       {num.toString().padStart(2, "0")}
                     </option>
@@ -147,8 +139,9 @@ export default function TaskDetail({
                   className="time-select"
                   value={seconds}
                   onChange={(e) => setSeconds(e.target.value)}
+                  disabled={minutes === "60"}
                 >
-                  {[0, 30].map((num) => (
+                  {Array.from({ length: 6 }, (_, i) => i * 10).map((num) => (
                     <option key={num} value={num.toString().padStart(2, "0")}>
                       {num.toString().padStart(2, "0")}
                     </option>
@@ -180,7 +173,7 @@ export default function TaskDetail({
                     title: taskTitle,
                     description: taskDescription,
                     priority: taskPriority,
-                    time: { hours, minutes, seconds },
+                    time: { hours: "00", minutes, seconds },
                   });
                 } else {
                   onClose();
