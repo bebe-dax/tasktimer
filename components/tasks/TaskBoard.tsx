@@ -2,67 +2,28 @@
 import { useState, useEffect, useRef } from "react";
 import TaskArea from "./TaskArea";
 import { Task, TaskStatus } from "../../lib/types";
-import { timeToSeconds, secondsToTime, areTimesEqual } from "../../lib/timeUtils";
+import {
+  timeToSeconds,
+  secondsToTime,
+  areTimesEqual,
+} from "../../lib/timeUtils";
 import { PRIORITY_ORDER } from "../../lib/constants";
 import "../../styles/taskboard.css";
+import { db } from "../../lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import { mapFirestoreTaskToApp } from "../../lib/firestoreMapper";
+import type { FirestoreTask } from "../../lib/types";
+import {
+  addTaskToFirestore,
+  updateTaskInFirestore,
+  deleteTaskFromFirestore,
+} from "../../lib/firestoreOperations";
+
+// TODO: 実際のユーザーIDに置き換える必要があります（認証実装後）
+const TEMP_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 export default function TaskBoard() {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "1",
-      title: "タスク1",
-      description: "タスク1の説明",
-      priority: "High",
-      status: "Todo",
-      initialTime: { hours: "01", minutes: "30", seconds: "00" },
-      time: { hours: "01", minutes: "30", seconds: "00" },
-    },
-    {
-      id: "2",
-      title: "タスク2",
-      description: "タスク2の説明",
-      priority: "Middle",
-      status: "Todo",
-      initialTime: { hours: "02", minutes: "00", seconds: "30" },
-      time: { hours: "02", minutes: "00", seconds: "30" },
-    },
-    {
-      id: "3",
-      title: "タスク3",
-      description: "タスク3の説明",
-      priority: "Low",
-      status: "In Progress",
-      initialTime: { hours: "00", minutes: "40", seconds: "00" },
-      time: { hours: "00", minutes: "40", seconds: "00" },
-    },
-    {
-      id: "4",
-      title: "タスク4",
-      description: "タスク4の説明",
-      priority: "High",
-      status: "In Progress",
-      initialTime: { hours: "03", minutes: "20", seconds: "30" },
-      time: { hours: "03", minutes: "20", seconds: "30" },
-    },
-    {
-      id: "5",
-      title: "タスク5",
-      description: "タスク5の説明",
-      priority: "Middle",
-      status: "Completed",
-      initialTime: { hours: "00", minutes: "50", seconds: "00" },
-      time: { hours: "00", minutes: "50", seconds: "00" },
-    },
-    {
-      id: "6",
-      title: "タスク6",
-      description: "タスク6の説明",
-      priority: "Low",
-      status: "Completed",
-      initialTime: { hours: "01", minutes: "10", seconds: "30" },
-      time: { hours: "01", minutes: "10", seconds: "30" },
-    },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   const timerRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
@@ -81,7 +42,11 @@ export default function TaskBoard() {
     timerRef.current[taskId] = setInterval(() => {
       setTasks((prevTasks) =>
         prevTasks.map((task) => {
-          if (task.id === taskId && task.status === "In Progress" && task.isRunning) {
+          if (
+            task.id === taskId &&
+            task.status === "In Progress" &&
+            task.isRunning
+          ) {
             const currentRemaining =
               task.remainingTime ?? timeToSeconds(task.time);
             const newRemaining = currentRemaining - 1;
@@ -117,10 +82,11 @@ export default function TaskBoard() {
     }
   };
 
-  const handleDrop = (
+  const handleDrop = async (
     taskId: string,
     newStatus: "Todo" | "In Progress" | "Completed"
   ) => {
+    // ローカルステートを更新
     setTasks((prevTasks) =>
       prevTasks.map((task) => {
         if (task.id === taskId) {
@@ -152,7 +118,67 @@ export default function TaskBoard() {
         return task;
       })
     );
+
+    // Firestoreを更新（非同期で実行）
+    try {
+      const taskToUpdate = tasks.find((t) => t.id === taskId);
+      if (taskToUpdate) {
+        await updateTaskInFirestore(
+          { ...taskToUpdate, status: newStatus },
+          TEMP_USER_ID
+        );
+      }
+    } catch (error) {
+      console.error("ステータス更新の保存に失敗しました:", error);
+      // エラーが発生してもUIは更新済みなので、ユーザーには通知のみ
+      alert("ステータスの保存に失敗しましたが、再読み込み時に元に戻ります。");
+    }
   };
+
+  // Firestoreからデータを取得（初回のみ）
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        console.log("Firestoreからタスクを取得中...");
+        const querySnapshot = await getDocs(collection(db, "tasks"));
+        console.log("取得したドキュメント数:", querySnapshot.size);
+
+        const fetchedTasks = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          console.log("ドキュメントID:", doc.id, "生データ:", data);
+
+          // FirestoreのデータをFirestoreTask型として扱い、アプリケーション用のTask型に変換
+          const firestoreTask: FirestoreTask = {
+            id: doc.id,
+            title: data.title,
+            description: data.description,
+            priority: data.priority,
+            status: data.status,
+            minutes: data.minutes,
+            seconds: data.seconds,
+            userId: data.userId,
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
+          };
+
+          // マッピング関数を使用してアプリケーション用のTask型に変換
+          const task = mapFirestoreTaskToApp(firestoreTask);
+          console.log("変換後のタスク:", task);
+          return task;
+        });
+
+        console.log("取得したタスク一覧:", fetchedTasks);
+        console.log("タスク数:", fetchedTasks.length);
+
+        // データがあれば無条件でセット（空配列でもOK）
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error("Firestoreからのデータ取得エラー:", error);
+      }
+    };
+
+    fetchTasks();
+  }, []);
 
   useEffect(() => {
     // 初期化時にIn Progressのタスクのタイマーを開始
@@ -182,43 +208,91 @@ export default function TaskBoard() {
     });
   }, [tasks.map((t) => `${t.id}-${t.status}`).join(",")]);
 
-  const handleAddTask = (task: Task) => {
-    setTasks((prevTasks) => [...prevTasks, task]);
+  const handleAddTask = async (task: Task) => {
+    try {
+      // Firestoreに追加
+      const newTaskId = await addTaskToFirestore(
+        {
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          status: task.status,
+          initialTime: task.initialTime,
+          time: task.time,
+        },
+        TEMP_USER_ID
+      );
+
+      // ローカルステートに追加（IDを付与）
+      const newTask = { ...task, id: newTaskId };
+      setTasks((prevTasks) => [...prevTasks, newTask]);
+    } catch (error) {
+      console.error("タスクの追加に失敗しました:", error);
+      alert("タスクの追加に失敗しました。");
+    }
   };
 
-  const handleUpdateTask = (updatedTask: Task) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => {
-        if (task.id === updatedTask.id) {
-          // In Progress中に時間が変更されたかチェック
-          const isInProgress = updatedTask.status === "In Progress" && task.status === "In Progress";
-          const timeChanged = !areTimesEqual(updatedTask.initialTime, task.initialTime);
+  const handleUpdateTask = async (updatedTask: Task) => {
+    try {
+      // Firestoreを更新
+      await updateTaskInFirestore(updatedTask, TEMP_USER_ID);
 
-          if (isInProgress && timeChanged) {
-            // 古いタイマーを停止
-            stopTimer(updatedTask.id);
+      // ローカルステートを更新
+      setTasks((prevTasks) =>
+        prevTasks.map((task) => {
+          if (task.id === updatedTask.id) {
+            // In Progress中に時間が変更されたかチェック
+            const isInProgress =
+              updatedTask.status === "In Progress" &&
+              task.status === "In Progress";
+            const timeChanged = !areTimesEqual(
+              updatedTask.initialTime,
+              task.initialTime
+            );
 
-            // 新しい時間でタスクをリセット
-            const resetTask = {
-              ...updatedTask,
-              remainingTime: undefined,
-              time: { ...updatedTask.initialTime },
-              isRunning: undefined,
-            };
+            if (isInProgress && timeChanged) {
+              // 古いタイマーを停止
+              stopTimer(updatedTask.id);
 
-            // 新しい時間でタイマーを再開
-            setTimeout(() => startTimer(updatedTask.id), 0);
-            return resetTask;
+              // 新しい時間でタスクをリセット
+              const resetTask = {
+                ...updatedTask,
+                remainingTime: undefined,
+                time: { ...updatedTask.initialTime },
+                isRunning: undefined,
+              };
+
+              // 新しい時間でタイマーを再開
+              setTimeout(() => startTimer(updatedTask.id), 0);
+              return resetTask;
+            }
+            return updatedTask;
           }
-          return updatedTask;
-        }
-        return task;
-      })
-    );
+          return task;
+        })
+      );
+    } catch (error) {
+      console.error("タスクの更新に失敗しました:", error);
+      alert("タスクの更新に失敗しました。");
+    }
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      // Firestoreから削除
+      await deleteTaskFromFirestore(taskId);
+
+      // ローカルステートから削除
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+
+      // タイマーが動いていれば停止
+      if (timerRef.current[taskId]) {
+        stopTimer(taskId);
+      }
+    } catch (error) {
+      console.error("タスクの削除に失敗しました:", error);
+      alert("タスクの削除に失敗しました。");
+    }
   };
 
   const handleToggleTimer = (taskId: string) => {
