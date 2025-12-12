@@ -10,7 +10,7 @@ import {
 import { PRIORITY_ORDER } from "../../lib/constants";
 import "../../styles/taskboard.css";
 import { db } from "../../lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { mapFirestoreTaskToApp } from "../../lib/firestoreMapper";
 import type { FirestoreTask } from "../../lib/types";
 import {
@@ -18,12 +18,11 @@ import {
   updateTaskInFirestore,
   deleteTaskFromFirestore,
 } from "../../lib/firestoreOperations";
-
-// TODO: 実際のユーザーIDに置き換える必要があります（認証実装後）
-const TEMP_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function TaskBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const { user } = useAuth();
 
   const timerRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
@@ -120,12 +119,14 @@ export default function TaskBoard() {
     );
 
     // Firestoreを更新（非同期で実行）
+    if (!user) return;
+
     try {
       const taskToUpdate = tasks.find((t) => t.id === taskId);
       if (taskToUpdate) {
         await updateTaskInFirestore(
           { ...taskToUpdate, status: newStatus },
-          TEMP_USER_ID
+          user.uid
         );
       }
     } catch (error) {
@@ -138,9 +139,16 @@ export default function TaskBoard() {
   // Firestoreからデータを取得（初回のみ）
   useEffect(() => {
     const fetchTasks = async () => {
+      if (!user) return;
+
       try {
         console.log("Firestoreからタスクを取得中...");
-        const querySnapshot = await getDocs(collection(db, "tasks"));
+        // 現在のユーザーのタスクのみ取得
+        const q = query(
+          collection(db, "tasks"),
+          where("userId", "==", user.uid)
+        );
+        const querySnapshot = await getDocs(q);
         console.log("取得したドキュメント数:", querySnapshot.size);
 
         const fetchedTasks = querySnapshot.docs.map((doc) => {
@@ -209,6 +217,8 @@ export default function TaskBoard() {
   }, [tasks.map((t) => `${t.id}-${t.status}`).join(",")]);
 
   const handleAddTask = async (task: Task) => {
+    if (!user) return;
+
     try {
       // Firestoreに追加
       const newTaskId = await addTaskToFirestore(
@@ -220,7 +230,7 @@ export default function TaskBoard() {
           initialTime: task.initialTime,
           time: task.time,
         },
-        TEMP_USER_ID
+        user.uid
       );
 
       // ローカルステートに追加（IDを付与）
@@ -233,9 +243,11 @@ export default function TaskBoard() {
   };
 
   const handleUpdateTask = async (updatedTask: Task) => {
+    if (!user) return;
+
     try {
       // Firestoreを更新
-      await updateTaskInFirestore(updatedTask, TEMP_USER_ID);
+      await updateTaskInFirestore(updatedTask, user.uid);
 
       // ローカルステートを更新
       setTasks((prevTasks) =>

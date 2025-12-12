@@ -13,3 +13,29 @@ header {
   margin-left: 20px;
   font-size: 40px;
 }
+
+.header-right {
+  margin-left: auto;
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* 16px */
+}
+
+.user-email {
+  color: #4b5563; /* text-gray-600 */
+}
+
+.logout-button {
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  background-color: #ef4444; /* bg-red-500 */
+  color: white;
+  border-radius: 0.5rem; /* rounded-lg */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+  background-color: #dc2626; /* hover:bg-red-600 */
+}

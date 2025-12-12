@@ -1,0 +1,178 @@
+/* 認証画面の共通スタイル */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+  padding: 1rem;
+}
+
+.auth-wrapper {
+  width: 100%;
+  max-width: 56rem; /* max-w-4xl */
+}
+
+.auth-title {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3rem; /* mb-12 */
+  color: #1f2937; /* text-gray-800 */
+}
+
+.auth-error {
+  margin-bottom: 1.5rem; /* mb-6 */
+  padding: 0.75rem; /* p-3 */
+  background-color: #fee2e2; /* bg-red-100 */
+  border: 1px solid #f87171; /* border-red-400 */
+  color: #b91c1c; /* text-red-700 */
+  border-radius: 0.5rem; /* rounded */
+  font-size: 0.875rem; /* text-sm */
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem; /* space-y-6 */
+}
+
+.auth-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 28rem; /* max-w-md */
+}
+
+.auth-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem; /* px-4 py-3 */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.5rem; /* rounded-lg */
+  outline: none;
+  color: #374151; /* text-gray-700 */
+  background-color: white;
+}
+
+.auth-input:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #3b82f6; /* ring-2 ring-blue-500 */
+}
+
+.auth-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.auth-submit-button {
+  width: 100%;
+  background-color: #3b82f6; /* bg-blue-500 */
+  color: white;
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+  border-radius: 0.5rem; /* rounded-lg */
+  font-weight: 500; /* font-medium */
+  font-size: 1rem; /* text-base */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-submit-button:hover:not(:disabled) {
+  background-color: #2563eb; /* hover:bg-blue-600 */
+}
+
+.auth-submit-button:disabled {
+  background-color: #9ca3af; /* disabled:bg-gray-400 */
+  cursor: not-allowed;
+}
+
+.auth-footer {
+  margin-top: 2rem; /* mt-8 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-footer-text {
+  color: #4b5563; /* text-gray-600 */
+  font-size: 0.875rem; /* text-sm */
+  margin-bottom: 1rem; /* mb-4 */
+}
+
+.auth-link {
+  color: #3b82f6; /* text-blue-500 */
+  font-weight: 500; /* font-medium */
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.auth-secondary-button {
+  display: block;
+  width: 100%;
+  max-width: 28rem; /* max-w-md */
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+  border: 2px solid #3b82f6; /* border-2 border-blue-500 */
+  color: #3b82f6; /* text-blue-500 */
+  border-radius: 0.5rem; /* rounded-lg */
+  font-weight: 500; /* font-medium */
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  background-color: transparent;
+}
+
+.auth-secondary-button:hover {
+  background-color: #eff6ff; /* hover:bg-blue-50 */
+}
+
+/* LoginForm.tsx と SignUpForm.tsx のスタイル */
+.auth-form-space {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* space-y-4 */
+}
+
+.auth-label {
+  display: block;
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  margin-bottom: 0.5rem; /* mb-2 */
+}
+
+.auth-form-input {
+  width: 100%;
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  border: 1px solid #d1d5db; /* border */
+  border-radius: 0.5rem; /* rounded-lg */
+  outline: none;
+}
+
+.auth-form-input:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.auth-form-button {
+  width: 100%;
+  background-color: #2563eb; /* bg-blue-600 */
+  color: white;
+  padding: 0.5rem 1rem; /* py-2 px-4 */
+  border-radius: 0.5rem; /* rounded-lg */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-form-button:hover {
+  background-color: #1d4ed8; /* hover:bg-blue-700 */
+}

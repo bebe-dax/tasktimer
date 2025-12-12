@@ -21,7 +21,7 @@ if (!getApps().length) {
 }
 
 // Firebase Authentication
-//export const auth: Auth = getAuth(app);
+export const auth: Auth = getAuth(app);
 
 // Firestore Database
 export const db: Firestore = getFirestore(app);
