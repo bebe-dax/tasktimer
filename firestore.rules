@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ユーザーコレクションのセキュリティルール
+    match /users/{userId} {
+      // 読み取り: 自分のドキュメントのみ
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // 作成: 自分のUIDと一致する場合のみ、かつuidフィールドも一致
+      allow create: if request.auth != null &&
+                       request.auth.uid == userId &&
+                       request.resource.data.uid == userId;
+
+      // 更新: 自分のドキュメントのみ、UIDとcreatedAtは変更不可
+      allow update: if request.auth != null &&
+                       request.auth.uid == userId &&
+                       request.resource.data.uid == resource.data.uid &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+
+      // 削除: 禁止（アカウント削除はFirebase Authenticationで管理）
+      allow delete: if false;
+    }
+
+    // タスクコレクションのセキュリティルール
+    match /tasks/{taskId} {
+      // 読み取り: 自分のタスクのみ
+      allow read: if request.auth != null &&
+                     resource.data.userId == request.auth.uid;
+
+      // 作成: userIdが自分のUIDと一致する場合のみ
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // 更新: 自分のタスクのみ、userIdは変更不可
+      allow update: if request.auth != null &&
+                       resource.data.userId == request.auth.uid &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // 削除: 自分のタスクのみ
+      allow delete: if request.auth != null &&
+                       resource.data.userId == request.auth.uid;
+    }
+  }
+}

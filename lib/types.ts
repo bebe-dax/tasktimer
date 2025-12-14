@@ -43,3 +43,13 @@ export interface FirestoreTask {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
+// Firestoreに保存されているユーザーの型定義
+export interface FirestoreUser {
+  uid: string; // Firebase AuthenticationのUID（ドキュメントID）
+  email: string; // メールアドレス
+  displayName: string; // 表示名
+  createdAt: Timestamp; // アカウント作成日時
+  updatedAt: Timestamp; // 最終更新日時
+  lastLoginAt: Timestamp; // 最終ログイン日時
+}

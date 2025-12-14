@@ -6,7 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import "../styles/home.css";
 
 export default function Home() {
-  const { user, loading, logout } = useAuth();
+  const { user, userProfile, loading, logout } = useAuth();
   const router = useRouter();
 
   // 認証チェック
@@ -26,8 +26,8 @@ export default function Home() {
     }
   };
 
-  // ローディング中
-  if (loading) {
+  // ローディング中、またはuserProfileの読み込み中
+  if (loading || (user && !userProfile)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">読み込み中...</div>
@@ -45,7 +45,9 @@ export default function Home() {
       <header>
         <h1 className="title">Task Board</h1>
         <div className="header-right">
-          <span className="user-email">{user.email}</span>
+          <span className="user-email">
+            {userProfile?.displayName || user.email}
+          </span>
           <button onClick={handleLogout} className="logout-button">
             ログアウト
           </button>
